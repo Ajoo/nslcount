@@ -4,13 +4,9 @@ Spyder Editor
 
 This is a temporary script file.
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 
 import sys
 import os
-import glob
 
 import numpy as np
 import pandas as pd
@@ -18,12 +14,6 @@ import pandas as pd
 from scipy import ndimage as nd
 from scipy.misc import imsave
 import cv2
-
-import matplotlib.pyplot as plt
-
-import shapely
-import shapely.geometry
-from shapely.geometry import Polygon
 
 
 def center_of_slice(slc):
@@ -295,13 +285,13 @@ class SeaLionData(object):
 if __name__ == "__main__":
     sld = SeaLionData()
     
-#    sld.purge_tiles()
+    sld.purge_tiles()
     
-#    train_ids = sld.train_ids(0, 100)
-#    val_ids = sld.train_ids(100, 150)
-#    test_ids = sld.train_ids(150, 200)
+    train_ids = sld.train_ids(0, 100)
+    val_ids = sld.train_ids(100, 150)
+    test_ids = sld.train_ids(150, 200)
 
-#    sld.extract_tiles(train_ids, 'Train')
-#    sld.extract_tiles(val_ids, 'Val')
-#    sld.extract_tiles(test_ids, 'Test')
+    sld.extract_tiles(train_ids, 'Train')
+    sld.extract_tiles(val_ids, 'Val')
+    sld.extract_tiles(test_ids, 'Test')
     
