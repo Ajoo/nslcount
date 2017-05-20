@@ -10,12 +10,16 @@ import matplotlib.pyplot as plt
 import torch
 from torch.autograd import Variable
 from torch import nn
+import torch.nn.parallel
 
 from torchvision import transforms, datasets, models
 
 
 import sys
 import os
+
+PARALLEL = True
+CUDA = True
 
 BATCH_SIZE = 64
 NUM_WORKERS = 4
@@ -32,7 +36,10 @@ class SeaLionVGG(models.VGG):
     def __init__(self, model, num_classes=6):
         super(models.VGG, self).__init__()
         
-        self.features = model().features
+        if PARALLEL:
+            self.features = nn.DataParallel(model().features)
+        else:
+            self.features = model().features
         
         self.classifier = nn.Sequential(
             nn.Linear(512 * 2 * 2, 256),
@@ -96,18 +103,40 @@ class Report(object):
     def __str__(self):
         return ', '.join('{} : {}'.format(n, v.avg) for n, v in zip(self.names, self.metrics))
         
-        
-    
-
-#%%
+#%% Load models
 CHECKPOINT_FILE = os.path.join('..', 'Checkpoints', 'checkpoint.pth.tar')
+model = SeaLionVGG(models.vgg11)
 
+loss_function = nn.CrossEntropyLoss()
+
+optimizer = torch.optim.SGD(model.parameters(), LEARNING_RATE,
+                            momentum=MOMENTUM, nesterov=False,
+                            weight_decay=WEIGHT_DECAY)
+
+if CUDA:
+    model.cuda()
+    loss_function.cuda()
+    
+# Resume?
+try:
+    checkpoint = torch.load(CHECKPOINT_FILE)
+    
+    model.load_state_dict(checkpoint['model_state'])
+    optimizer.load_state_dict(checkpoint['optim_state'])
+    train_report = checkpoint['train_report']
+    val_report = checkpoint['val_report']
+except:
+    print("No checkpoint file found. Starting over!")
+    train_report = Report('loss', 'accuracy')
+    val_report = Report('loss', 'accuracy')
+
+#%% Data Loaders
 train_dir = os.path.join('..', 'Tiles', 'Train')
 val_dir = os.path.join('..', 'Tiles', 'Val')
 
 trans = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
 train_folder = datasets.ImageFolder(train_dir, trans)
@@ -117,25 +146,6 @@ train_loader = torch.utils.data.DataLoader(train_folder, batch_size=BATCH_SIZE,
                                            num_workers=NUM_WORKERS, shuffle=True)#, pin_memory=True)
 val_loader = torch.utils.data.DataLoader(val_folder, batch_size=BATCH_SIZE,
                                            num_workers=NUM_WORKERS, shuffle=True)#, pin_memory=True)
-
-model = SeaLionVGG(models.vgg11)
-
-loss_function = nn.CrossEntropyLoss()
-
-optimizer = torch.optim.SGD(model.parameters(), LEARNING_RATE,
-                            momentum=MOMENTUM, nesterov=False,
-                            weight_decay=WEIGHT_DECAY)
-
-train_report = Report('loss', 'accuracy')
-val_report = Report('loss', 'accuracy')
-#%% RESUME
-
-checkpoint = torch.load(CHECKPOINT_FILE)
-model.load_state_dict(checkpoint['model_state'])
-optimizer.load_state_dict(checkpoint['optim_state'])
-
-train_report = checkpoint['train_report']
-val_report = checkpoint['val_report']
  
 #%%    
 

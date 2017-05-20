@@ -7,6 +7,7 @@ This is a temporary script file.
 
 import sys
 import os
+import globs
 
 import numpy as np
 import pandas as pd
