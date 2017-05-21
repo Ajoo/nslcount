@@ -164,7 +164,7 @@ def process_batches(loader, report, train=True):
     
     for i, (tiles, targets) in enumerate(loader):
         if CUDA:
-            targets.cuda()
+            targets = targets.cuda()
         tiles, targets = Variable(tiles), Variable(targets)
         
         
