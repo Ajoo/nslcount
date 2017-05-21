@@ -142,10 +142,12 @@ trans = transforms.Compose([
 train_folder = datasets.ImageFolder(train_dir, trans)
 val_folder = datasets.ImageFolder(val_dir, trans)
 
+
+pin_memory = CUDA
 train_loader = torch.utils.data.DataLoader(train_folder, batch_size=BATCH_SIZE,
-                                           num_workers=NUM_WORKERS, shuffle=True)#, pin_memory=True)
+                                           num_workers=NUM_WORKERS, shuffle=True, pin_memory=True)
 val_loader = torch.utils.data.DataLoader(val_folder, batch_size=BATCH_SIZE,
-                                           num_workers=NUM_WORKERS, shuffle=True)#, pin_memory=True)
+                                           num_workers=NUM_WORKERS, shuffle=True, pin_memory=True)
  
 #%%    
 
