@@ -18,6 +18,7 @@ from torchvision import transforms, datasets, models
 import sys
 import os
 
+RESUME = False
 PARALLEL = True
 CUDA = True
 
@@ -105,7 +106,7 @@ class Report(object):
         
 #%% Load models
 CHECKPOINT_FILE = os.path.join('..', 'Checkpoints', 'checkpoint.pth.tar')
-model = SeaLionVGG(models.vgg11)
+model = SeaLionVGG(models.vgg13)
 
 loss_function = nn.CrossEntropyLoss()
 
@@ -119,6 +120,8 @@ if CUDA:
     
 # Resume?
 try:
+    if not RESUME:
+        raise Exception('Resume turned off')
     checkpoint = torch.load(CHECKPOINT_FILE)
     
     model.load_state_dict(checkpoint['model_state'])
@@ -136,7 +139,7 @@ val_dir = os.path.join('..', 'Tiles', 'Val')
 
 trans = transforms.Compose([
     transforms.ToTensor(),
-    #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
 train_folder = datasets.ImageFolder(train_dir, trans)
@@ -160,7 +163,9 @@ def process_batches(loader, report, train=True):
     loader = iter(loader)
     
     for i, (tiles, targets) in enumerate(loader):
-        tiles, targets = Variable(tiles), Variable(targets.cuda())
+        if CUDA:
+            targets.cuda()
+        tiles, targets = Variable(tiles), Variable(targets)
         
         
         outputs = model(tiles)
