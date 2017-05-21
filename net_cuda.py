@@ -160,7 +160,8 @@ def process_batches(loader, report, train=True):
     loader = iter(loader)
     
     for i, (tiles, targets) in enumerate(loader):
-        tiles, targets = Variable(tiles), Variable(targets)
+        tiles, targets = Variable(tiles), Variable(targets.cuda())
+        
         
         outputs = model(tiles)
         loss = loss_function(outputs, targets)
