@@ -116,7 +116,6 @@ loss_function = nn.CrossEntropyLoss()
 #                            weight_decay=WEIGHT_DECAY)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE,
-                            momentum=MOMENTUM,
                             weight_decay=WEIGHT_DECAY)
 
 if CUDA:
