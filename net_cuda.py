@@ -105,14 +105,18 @@ class Report(object):
         return ', '.join('{} : {}'.format(n, v.avg) for n, v in zip(self.names, self.metrics))
         
 #%% Load models
-CHECKPOINT_FILE = os.path.join('..', 'Checkpoints', 'checkpoint_SGD_{epoch}.pth.tar')
+CHECKPOINT_FILE = os.path.join('..', 'Checkpoints', 'checkpoint_ADAM_{epoch}.pth.tar')
 
 model = SeaLionVGG(models.vgg13)
 
 loss_function = nn.CrossEntropyLoss()
 
-optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE,
-                            momentum=MOMENTUM, nesterov=False,
+#optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE,
+#                            momentum=MOMENTUM, nesterov=False,
+#                            weight_decay=WEIGHT_DECAY)
+
+optimizer = torch.optim.ADAM(model.parameters(), lr=LEARNING_RATE,
+                            momentum=MOMENTUM,
                             weight_decay=WEIGHT_DECAY)
 
 if CUDA:
