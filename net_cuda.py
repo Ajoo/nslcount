@@ -29,7 +29,7 @@ WEIGHT_DECAY = 0.0
 MOMENTUM = 0.9
 
 START_EPOCH = 0
-N_EPOCHS = 10
+N_EPOCHS = 100
 
 OUTPUT_FREQ = 10
 
@@ -105,12 +105,13 @@ class Report(object):
         return ', '.join('{} : {}'.format(n, v.avg) for n, v in zip(self.names, self.metrics))
         
 #%% Load models
-CHECKPOINT_FILE = os.path.join('..', 'Checkpoints', 'checkpoint.pth.tar')
+CHECKPOINT_FILE = os.path.join('..', 'Checkpoints', 'checkpoint_SGD_{epoch}.pth.tar')
+
 model = SeaLionVGG(models.vgg13)
 
 loss_function = nn.CrossEntropyLoss()
 
-optimizer = torch.optim.SGD(model.parameters(), LEARNING_RATE,
+optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE,
                             momentum=MOMENTUM, nesterov=False,
                             weight_decay=WEIGHT_DECAY)
 
@@ -137,20 +138,20 @@ except:
 train_dir = os.path.join('..', 'Tiles', 'Train')
 val_dir = os.path.join('..', 'Tiles', 'Val')
 
+mean = [0.1578, 0.1614, 0.2701] #[0.485, 0.456, 0.406]
+std = [0.8393, 0.7114, 0.6358] #[0.229, 0.224, 0.225]
 trans = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.Normalize(mean=mean, std=std),
     ])
 
 train_folder = datasets.ImageFolder(train_dir, trans)
 val_folder = datasets.ImageFolder(val_dir, trans)
 
-
-pin_memory = CUDA
 train_loader = torch.utils.data.DataLoader(train_folder, batch_size=BATCH_SIZE,
-                                           num_workers=NUM_WORKERS, shuffle=True, pin_memory=True)
+                                           num_workers=NUM_WORKERS, shuffle=True, pin_memory=CUDA)
 val_loader = torch.utils.data.DataLoader(val_folder, batch_size=BATCH_SIZE,
-                                           num_workers=NUM_WORKERS, shuffle=True, pin_memory=True)
+                                           num_workers=NUM_WORKERS, shuffle=True, pin_memory=CUDA)
  
 #%%    
 
@@ -204,4 +205,4 @@ for epoch in range(START_EPOCH, N_EPOCHS):
         'optim_state': optimizer.state_dict(),
         'train_report': train_report,
         'val_report': val_report
-                }, '../checkpoint.pth.tar')
+                }, CHECKPOINT_FILE.format(epoch=epoch//OUTPUT_FREQ))
